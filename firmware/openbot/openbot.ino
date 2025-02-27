@@ -1,3 +1,5 @@
+// openbot_071.ino
+
 // Required App Version: 0.7.0
 // ---------------------------------------------------------------------------
 // This Arduino Nano sketch accompanies the OpenBot Android application.
@@ -26,35 +28,17 @@
 // ---------------------------------------------------------------------------
 
 // By Matthias Mueller, 2023
+// Mod by MarshalLab 23/01/2025
 // ---------------------------------------------------------------------------
 
-//------------------------------------------------------//
-// DEFINITIONS - DO NOT CHANGE!
-//------------------------------------------------------//
-
-//MCUs
-#define NANO 328 //Atmega328p
-#define ESP32 32 //ESP32
-
-//Robot bodies with Atmega328p as MCU --> Select Arduino Nano as board
-#define DIY 0        // DIY without PCB
-#define PCB_V1 1     // DIY with PCB V1
-#define PCB_V2 2     // DIY with PCB V2
-#define RTR_TT 3     // Ready-to-Run with TT-motors
-#define RC_CAR 4     // RC truck prototypes
-#define LITE 5       // Smaller DIY version for education
-//Robot bodies with ESP32 as MCU --> Select ESP32 Dev Module as board
-#define RTR_TT2 6   // Ready-to-Run with TT-motors
-#define RTR_520 7    // Ready-to-Run with 520-motors
-#define MTV 8        // Multi Terrain Vehicle
-#define DIY_ESP32 9  // DIY without PCB
+// config.h
 
 //------------------------------------------------------//
 // SETUP - Choose your body
 //------------------------------------------------------//
 
-// Setup the OpenBot version (DIY, PCB_V1, PCB_V2, RTR_TT, RC_CAR, LITE, RTR_TT2, RTR_520, DIY_ESP32)
-#define OPENBOT DIY
+// Setup the OpenBot version (DIY, PCB_V1, PCB_V2, RTR_TT, RC_CAR, LITE, RTR_TT2, RTR_520, DIY_ESP32, ESP32_NXT)
+#define OPENBOT ESP32_NXT
 
 //------------------------------------------------------//
 // SETTINGS - Global settings
@@ -108,176 +92,77 @@ boolean coast_mode = 1;
 // PIN_LED_LF, PIN_LED_RF               Control left and right front LEDs (illumination)
 // PIN_LED_Y, PIN_LED_G, PIN_LED_B      Control yellow, green and blue status LEDs
 
-//-------------------------DIY--------------------------//
-#if (OPENBOT == DIY)
-const String robot_type = "DIY";
-#define MCU NANO
+// ESP32 Openbot hardware
+
+//-------------------------ESP32_NXT----------------------//
+#if (OPENBOT == ESP32_NXT)
+const String robot_type = "ESP32_NXT";
+#define MCU ESP32
+#include <esp_wifi.h>
+#define HAS_BLUETOOTH 1
+#define analogWrite ledcWrite
+#define attachPinChangeInterrupt attachInterrupt
+#define detachPinChangeInterrupt detachInterrupt
+#define digitalPinToPinChangeInterrupt digitalPinToInterrupt
+// #define PIN_PWM_L CH_PWM_L
+// #define PIN_PWM_R CH_PWM_R
 #define HAS_VOLTAGE_DIVIDER 0
-const float VOLTAGE_DIVIDER_FACTOR = (20 + 10) / 10;
-const float VOLTAGE_MIN = 2.5f;
-const float VOLTAGE_LOW = 9.0f;
-const float VOLTAGE_MAX = 12.6f;
-const float ADC_FACTOR = 5.0 / 1023;
-#define HAS_INDICATORS 0
-#define HAS_SONAR 0
-#define SONAR_MEDIAN 0
-#define HAS_SPEED_SENSORS_FRONT 0
-#define HAS_OLED 0
-const int PIN_PWM_L1 = 5;
-const int PIN_PWM_L2 = 6;
-const int PIN_PWM_R1 = 9;
-const int PIN_PWM_R2 = 10;
-const int PIN_SPEED_LF = 2;
-const int PIN_SPEED_RF = 3;
-const int PIN_VIN = A7;
-const int PIN_TRIGGER = 12;
-const int PIN_ECHO = 11;
-const int PIN_LED_LI = 4;
-const int PIN_LED_RI = 7;
-
-//-------------------------PCB_V1-----------------------//
-#elif (OPENBOT == PCB_V1)
-const String robot_type = "PCB_V1";
-#define MCU NANO
-#define HAS_VOLTAGE_DIVIDER 1
-const float VOLTAGE_DIVIDER_FACTOR = (100 + 33) / 33;
-const float VOLTAGE_MIN = 2.5f;
-const float VOLTAGE_LOW = 9.0f;
-const float VOLTAGE_MAX = 12.6f;
-const float ADC_FACTOR = 5.0 / 1023;
-#define HAS_INDICATORS 1
-#define HAS_SONAR 1
-#define SONAR_MEDIAN 0
-#define HAS_SPEED_SENSORS_FRONT 1
-#define HAS_OLED 0
-const int PIN_PWM_L1 = 9;
-const int PIN_PWM_L2 = 10;
-const int PIN_PWM_R1 = 5;
-const int PIN_PWM_R2 = 6;
-const int PIN_SPEED_LF = 2;
-const int PIN_SPEED_RF = 4;
-const int PIN_VIN = A7;
-const int PIN_TRIGGER = 3;
-const int PIN_ECHO = 3;
-const int PIN_LED_LI = 7;
-const int PIN_LED_RI = 8;
-
-//-------------------------PCB_V2-----------------------//
-#elif (OPENBOT == PCB_V2)
-const String robot_type = "PCB_V2";
-#define MCU NANO
-#define HAS_VOLTAGE_DIVIDER 1
-const float VOLTAGE_DIVIDER_FACTOR = (20 + 10) / 10;
-const float VOLTAGE_MIN = 2.5f;
-const float VOLTAGE_LOW = 9.0f;
-const float VOLTAGE_MAX = 12.6f;
-const float ADC_FACTOR = 5.0 / 1023;
-#define HAS_INDICATORS 1
-#define HAS_SONAR 1
-#define SONAR_MEDIAN 0
-#define HAS_SPEED_SENSORS_FRONT 1
-#define HAS_OLED 0
-const int PIN_PWM_L1 = 9;
-const int PIN_PWM_L2 = 10;
-const int PIN_PWM_R1 = 5;
-const int PIN_PWM_R2 = 6;
-const int PIN_SPEED_LF = 2;
-const int PIN_SPEED_RF = 3;
-const int PIN_VIN = A7;
-const int PIN_TRIGGER = 4;
-const int PIN_ECHO = 4;
-const int PIN_LED_LI = 7;
-const int PIN_LED_RI = 8;
-
-//-------------------------RTR_TT-----------------------//
-#elif (OPENBOT == RTR_TT)
-const String robot_type = "RTR_TT";
-#define MCU NANO
-#define HAS_VOLTAGE_DIVIDER 1
 const float VOLTAGE_DIVIDER_FACTOR = (30 + 10) / 10;
-const float VOLTAGE_MIN = 2.5f;
+const float VOLTAGE_MIN = 6.0f;
 const float VOLTAGE_LOW = 9.0f;
 const float VOLTAGE_MAX = 12.6f;
-const float ADC_FACTOR = 5.0 / 1023;
+const float ADC_FACTOR = 3.3 / 4095;
+#define HAS_OLED 1
 #define HAS_INDICATORS 1
 #define HAS_SONAR 1
 #define SONAR_MEDIAN 0
 #define HAS_BUMPER 1
 #define HAS_SPEED_SENSORS_FRONT 1
-#define HAS_SPEED_SENSORS_BACK 1
+#define HAS_SPEED_SENSORS_BACK  0
 #define HAS_LEDS_FRONT 1
 #define HAS_LEDS_BACK 1
 #define HAS_LEDS_STATUS 1
-const int PIN_PWM_L1 = 10;
-const int PIN_PWM_L2 = 9;
-const int PIN_PWM_R1 = 6;
-const int PIN_PWM_R2 = 5;
-const int PIN_SPEED_LF = A3;
-const int PIN_SPEED_RF = 7;
-const int PIN_SPEED_LB = A4;
-const int PIN_SPEED_RB = 8;
-const int PIN_VIN = A6;
-const int PIN_TRIGGER = 4;
-const int PIN_ECHO = 2;
-const int PIN_LED_LI = A5;
-const int PIN_LED_RI = 12;
-const int PIN_LED_LB = A5;
-const int PIN_LED_RB = 12;
-const int PIN_LED_LF = 3;
-const int PIN_LED_RF = 11;
-const int PIN_LED_Y = 13;
-const int PIN_LED_G = A0;
-const int PIN_LED_B = A1;
-const int PIN_BUMPER = A2;
+//PWM properties
+const int FREQ = 5000;
+const int RES = 8;
+const int CH_PWM_L1 = 0;
+const int CH_PWM_L2 = 1;
+const int CH_PWM_R1 = 2;
+const int CH_PWM_R2 = 3;
+const int CH_LED_LF = 4;
+const int CH_LED_RF = 5;
+const int CH_LED_LB = 6;
+const int CH_LED_RB = 7;
+const int PIN_PWM_R1 = 16;
+const int PIN_PWM_R2 = 17;
+const int PIN_PWM_L1 = 18;
+const int PIN_PWM_L2 = 19;
+const int PIN_SPEED_LF = 5;
+const int PIN_SPEED_RF = 4;
+const int PIN_VIN = 34;
+const int PIN_TRIGGER = 2;
+const int PIN_ECHO = 23;
+const int PIN_LED_LI = 32;
+const int PIN_LED_RI = 33;
+const int PIN_LED_LB = 32;
+const int PIN_LED_RB = 33;
+const int PIN_LED_LF = 14;
+const int PIN_LED_RF = 12;
+const int PIN_LED_Y = 26;
+const int PIN_LED_G = 25;
+const int PIN_LED_B = 27;
+const int PIN_BUMPER = 35;
 const int BUMPER_NOISE = 512;
-const int BUMPER_EPS = 10;
-const int BUMPER_AF = 951;
-const int BUMPER_BF = 903;
-const int BUMPER_CF = 867;
-const int BUMPER_LF = 825;
-const int BUMPER_RF = 786;
-const int BUMPER_BB = 745;
-const int BUMPER_LB = 607;
-const int BUMPER_RB = 561;
-
-//-------------------------RC_CAR-----------------------//
-#elif (OPENBOT == RC_CAR)
-const String robot_type = "RC_CAR";
-#define MCU NANO
-#include <Servo.h>
-Servo ESC;
-Servo SERVO;
-#define HAS_VOLTAGE_DIVIDER 0
-const float VOLTAGE_DIVIDER_FACTOR = (20 + 10) / 10;
-const float VOLTAGE_MIN = 0.0f;
-const float VOLTAGE_LOW = 6.4f;
-const float VOLTAGE_MAX = 8.4f;
-const float ADC_FACTOR = 5.0 / 1023;
-#define HAS_INDICATORS 0
-#define HAS_SONAR 0
-#define SONAR_MEDIAN 0
-const int PIN_PWM_T = A0;
-const int PIN_PWM_S = A1;
-const int PIN_VIN = A7;
-const int PIN_TRIGGER = 4;
-const int PIN_ECHO = 4;
-const int PIN_LED_LI = 7;
-const int PIN_LED_RI = 8;
-
-//-------------------------LITE-------------------------//
-#elif (OPENBOT == LITE)
-const String robot_type = "LITE";
-#define MCU NANO
-const float VOLTAGE_MIN = 2.5f;
-const float VOLTAGE_LOW = 4.5f;
-const float VOLTAGE_MAX = 5.0f;
-#define HAS_INDICATORS 1
-const int PIN_PWM_L1 = 5;
-const int PIN_PWM_L2 = 6;
-const int PIN_PWM_R1 = 9;
-const int PIN_PWM_R2 = 10;
-const int PIN_LED_LI = 4;
-const int PIN_LED_RI = 7;
+const int BUMPER_EPS = 700;
+const int BUMPER_AF = 690;
+// const int BUMPER_AF = 3890;
+const int BUMPER_BF = 3550;
+const int BUMPER_CF = 3330;
+const int BUMPER_LF = 3100;
+const int BUMPER_RF = 2930;
+const int BUMPER_BB = 2750;
+const int BUMPER_LB = 2180;
+const int BUMPER_RB = 2000;
 
 //-------------------------RTR_TT2----------------------//
 #elif (OPENBOT == RTR_TT2)
@@ -520,8 +405,221 @@ const int PIN_TRIGGER = 25;
 const int PIN_ECHO = 26;
 const int PIN_LED_LI = 22;
 const int PIN_LED_RI = 16;
-#endif
+
+
+// ATMEGA328P Openbot hardware
+
+//-------------------------DIY--------------------------//
+#elif (OPENBOT == DIY)
+const String robot_type = "DIY";
+#define MCU NANO
+#define HAS_VOLTAGE_DIVIDER 0
+const float VOLTAGE_DIVIDER_FACTOR = (20 + 10) / 10;
+const float VOLTAGE_MIN = 2.5f;
+const float VOLTAGE_LOW = 9.0f;
+const float VOLTAGE_MAX = 12.6f;
+const float ADC_FACTOR = 5.0 / 1023;
+#define HAS_INDICATORS 0
+#define HAS_SONAR 0
+#define SONAR_MEDIAN 0
+#define HAS_SPEED_SENSORS_FRONT 0
+#define HAS_OLED 0
+const int PIN_PWM_L1 = 5;
+const int PIN_PWM_L2 = 6;
+const int PIN_PWM_R1 = 9;
+const int PIN_PWM_R2 = 10;
+const int PIN_SPEED_LF = 2;
+const int PIN_SPEED_RF = 3;
+const int PIN_VIN = A7;
+const int PIN_TRIGGER = 12;
+const int PIN_ECHO = 11;
+const int PIN_LED_LI = 4;
+const int PIN_LED_RI = 7;
+
+//-------------------------PCB_V1-----------------------//
+#elif (OPENBOT == PCB_V1)
+const String robot_type = "PCB_V1";
+#define MCU NANO
+#define HAS_VOLTAGE_DIVIDER 1
+const float VOLTAGE_DIVIDER_FACTOR = (100 + 33) / 33;
+const float VOLTAGE_MIN = 2.5f;
+const float VOLTAGE_LOW = 9.0f;
+const float VOLTAGE_MAX = 12.6f;
+const float ADC_FACTOR = 5.0 / 1023;
+#define HAS_INDICATORS 1
+#define HAS_SONAR 1
+#define SONAR_MEDIAN 0
+#define HAS_SPEED_SENSORS_FRONT 1
+#define HAS_OLED 0
+const int PIN_PWM_L1 = 9;
+const int PIN_PWM_L2 = 10;
+const int PIN_PWM_R1 = 5;
+const int PIN_PWM_R2 = 6;
+const int PIN_SPEED_LF = 2;
+const int PIN_SPEED_RF = 4;
+const int PIN_VIN = A7;
+const int PIN_TRIGGER = 3;
+const int PIN_ECHO = 3;
+const int PIN_LED_LI = 7;
+const int PIN_LED_RI = 8;
+
+//-------------------------PCB_V2-----------------------//
+#elif (OPENBOT == PCB_V2)
+const String robot_type = "PCB_V2";
+#define MCU NANO
+#define HAS_VOLTAGE_DIVIDER 1
+const float VOLTAGE_DIVIDER_FACTOR = (20 + 10) / 10;
+const float VOLTAGE_MIN = 2.5f;
+const float VOLTAGE_LOW = 9.0f;
+const float VOLTAGE_MAX = 12.6f;
+const float ADC_FACTOR = 5.0 / 1023;
+#define HAS_INDICATORS 1
+#define HAS_SONAR 1
+#define SONAR_MEDIAN 0
+#define HAS_SPEED_SENSORS_FRONT 1
+#define HAS_OLED 0
+const int PIN_PWM_L1 = 9;
+const int PIN_PWM_L2 = 10;
+const int PIN_PWM_R1 = 5;
+const int PIN_PWM_R2 = 6;
+const int PIN_SPEED_LF = 2;
+const int PIN_SPEED_RF = 3;
+const int PIN_VIN = A7;
+const int PIN_TRIGGER = 4;
+const int PIN_ECHO = 4;
+const int PIN_LED_LI = 7;
+const int PIN_LED_RI = 8;
+
+//-------------------------RTR_TT-----------------------//
+#elif (OPENBOT == RTR_TT)
+const String robot_type = "RTR_TT";
+#define MCU NANO
+#define HAS_VOLTAGE_DIVIDER 1
+const float VOLTAGE_DIVIDER_FACTOR = (30 + 10) / 10;
+const float VOLTAGE_MIN = 2.5f;
+const float VOLTAGE_LOW = 9.0f;
+const float VOLTAGE_MAX = 12.6f;
+const float ADC_FACTOR = 5.0 / 1023;
+#define HAS_INDICATORS 1
+#define HAS_SONAR 1
+#define SONAR_MEDIAN 0
+#define HAS_BUMPER 1
+#define HAS_SPEED_SENSORS_FRONT 1
+#define HAS_SPEED_SENSORS_BACK 1
+#define HAS_LEDS_FRONT 1
+#define HAS_LEDS_BACK 1
+#define HAS_LEDS_STATUS 1
+const int PIN_PWM_L1 = 10;
+const int PIN_PWM_L2 = 9;
+const int PIN_PWM_R1 = 6;
+const int PIN_PWM_R2 = 5;
+const int PIN_SPEED_LF = A3;
+const int PIN_SPEED_RF = 7;
+const int PIN_SPEED_LB = A4;
+const int PIN_SPEED_RB = 8;
+const int PIN_VIN = A6;
+const int PIN_TRIGGER = 4;
+const int PIN_ECHO = 2;
+const int PIN_LED_LI = A5;
+const int PIN_LED_RI = 12;
+const int PIN_LED_LB = A5;
+const int PIN_LED_RB = 12;
+const int PIN_LED_LF = 3;
+const int PIN_LED_RF = 11;
+const int PIN_LED_Y = 13;
+const int PIN_LED_G = A0;
+const int PIN_LED_B = A1;
+const int PIN_BUMPER = A2;
+const int BUMPER_NOISE = 512;
+const int BUMPER_EPS = 10;
+const int BUMPER_AF = 951;
+const int BUMPER_BF = 903;
+const int BUMPER_CF = 867;
+const int BUMPER_LF = 825;
+const int BUMPER_RF = 786;
+const int BUMPER_BB = 745;
+const int BUMPER_LB = 607;
+const int BUMPER_RB = 561;
+
+//-------------------------RC_CAR-----------------------//
+#elif (OPENBOT == RC_CAR)
+const String robot_type = "RC_CAR";
+#define MCU NANO
+#include <Servo.h>
+Servo ESC;
+Servo SERVO;
+#define HAS_VOLTAGE_DIVIDER 0
+const float VOLTAGE_DIVIDER_FACTOR = (20 + 10) / 10;
+const float VOLTAGE_MIN = 0.0f;
+const float VOLTAGE_LOW = 6.4f;
+const float VOLTAGE_MAX = 8.4f;
+const float ADC_FACTOR = 5.0 / 1023;
+#define HAS_INDICATORS 0
+#define HAS_SONAR 0
+#define SONAR_MEDIAN 0
+const int PIN_PWM_T = A0;
+const int PIN_PWM_S = A1;
+const int PIN_VIN = A7;
+const int PIN_TRIGGER = 4;
+const int PIN_ECHO = 4;
+const int PIN_LED_LI = 7;
+const int PIN_LED_RI = 8;
+
+//-------------------------LITE-------------------------//
+#elif (OPENBOT == LITE)
+const String robot_type = "LITE";
+#define MCU NANO
+const float VOLTAGE_MIN = 2.5f;
+const float VOLTAGE_LOW = 4.5f;
+const float VOLTAGE_MAX = 5.0f;
+#define HAS_INDICATORS 1
+const int PIN_PWM_L1 = 5;
+const int PIN_PWM_L2 = 6;
+const int PIN_PWM_R1 = 9;
+const int PIN_PWM_R2 = 10;
+const int PIN_LED_LI = 4;
+const int PIN_LED_RI = 7;
+
 //------------------------------------------------------//
+#endif
+
+//#include "config.h"
+
+//------------------------------------------------------//
+// DEFINITIONS - DO NOT CHANGE!
+//------------------------------------------------------//
+
+//MCUs
+#define NANO 328 //Atmega328p
+#define ESP32 32 //ESP32
+
+//Robot bodies with Atmega328p as MCU --> Select Arduino Nano as board
+#define DIY 0        // DIY without PCB
+#define PCB_V1 1     // DIY with PCB V1
+#define PCB_V2 2     // DIY with PCB V2
+#define RTR_TT 3     // Ready-to-Run with TT-motors
+#define RC_CAR 4     // RC truck prototypes
+#define LITE 5       // Smaller DIY version for education
+//Robot bodies with ESP32 as MCU --> Select ESP32 Dev Module as board
+#define RTR_TT2 6   // Ready-to-Run with TT-motors
+#define RTR_520 7    // Ready-to-Run with 520-motors
+#define MTV 8        // Multi Terrain Vehicle
+#define DIY_ESP32 9  // DIY without PCB
+#define ESP32_NXT 10
+
+//------------------------------------------------------//
+
+#ifdef ESP_ARDUINO_VERSION_MAJOR
+  #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    // #define ledcAttach(PIN_PWM, FREQ, RES) ledcAttach(PIN_PWM, FREQ, RES)
+    #define ledcAttach(PIN_PWM, FREQ, RES, HS_PWM) ledcAttachChannel(PIN_PWM, FREQ, RES, HS_PWM)
+    #define ledcDetach(pin) ledcDetach(pin)
+  #else
+    // #define ledcAttach(PIN_PWM, FREQ, RES) ledcSetup(HS_PWM, FREQ, RES); ledcAttachPin(PIN_PWM, HS_PWM)
+    #define ledcAttach(PIN_PWM, FREQ, RES, HS_PWM) ledcSetup(HS_PWM, FREQ, RES); ledcAttachPin(PIN_PWM, HS_PWM)
+    #define ledcDetachPin(pin) ledcDetach(pin)
+  #endif
+#endif
 
 #if (HAS_BLUETOOTH)
 #include <BLEDevice.h>
@@ -592,7 +690,15 @@ class MyServerCallbacks : public BLEServerCallbacks {
 
 class MyCallbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) {
-    std::string bleReceiver = pCharacteristic->getValue();
+    // std::string bleReceiver = pCharacteristic->getValue();
+    #ifdef ESP_ARDUINO_VERSION_MAJOR
+      #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+        String bleReceiver = pCharacteristic->getValue();
+      #else
+        std::string bleReceiver = pCharacteristic->getValue();
+      #endif
+    #endif
+
     if (bleReceiver.length() > 0) {
       for (int i = 0; i < bleReceiver.length(); i++) {
         on_ble_rx(bleReceiver[i]);
@@ -785,6 +891,9 @@ void setup() {
   pinMode(PIN_LED_Y, OUTPUT);
   pinMode(PIN_LED_G, OUTPUT);
   pinMode(PIN_LED_B, OUTPUT);
+  digitalWrite(PIN_LED_Y, HIGH);
+  digitalWrite(PIN_LED_G, HIGH);
+  digitalWrite(PIN_LED_B, HIGH);
 #endif
   // Test sequence for indicator LEDs
 #if HAS_INDICATORS
@@ -806,7 +915,7 @@ void setup() {
   pinMode(PIN_VIN, INPUT);
 #endif
 #if (HAS_BUMPER)
-  pinMode(PIN_BUMPER, INPUT);
+  pinMode(PIN_BUMPER, INPUT_PULLUP);
 #endif
 
 #if (HAS_SPEED_SENSORS_BACK)
@@ -832,36 +941,33 @@ void setup() {
   esp_wifi_deinit();
 #endif
 
-#if (MCU == ESP32 && OPENBOT != MTV)
+#if (MCU == ESP32 && OPENBOT != MTV && OPENBOT != ESP32_NXT)
   // PWMs
   // Configure PWM functionalitites
-  ledcSetup(CH_PWM_L1, FREQ, RES);
-  ledcSetup(CH_PWM_L2, FREQ, RES);
-  ledcSetup(CH_PWM_R1, FREQ, RES);
-  ledcSetup(CH_PWM_R2, FREQ, RES);
 
-  // Attach the channel to the GPIO to be controlled
-  ledcAttachPin(PIN_PWM_LF1, CH_PWM_L1);
-  ledcAttachPin(PIN_PWM_LB1, CH_PWM_L1);
-  ledcAttachPin(PIN_PWM_LF2, CH_PWM_L2);
-  ledcAttachPin(PIN_PWM_LB2, CH_PWM_L2);
-  ledcAttachPin(PIN_PWM_RF1, CH_PWM_R1);
-  ledcAttachPin(PIN_PWM_RB1, CH_PWM_R1);
-  ledcAttachPin(PIN_PWM_RF2, CH_PWM_R2);
-  ledcAttachPin(PIN_PWM_RB2, CH_PWM_R2);
+  // // Attach the channel to the GPIO to be controlled
+#if (HAS_SPEED_SENSORS_FRONT)
+  ledcAttach(PIN_PWM_LF1, FREQ, RES, CH_PWM_L1);
+  ledcAttach(PIN_PWM_LF2, FREQ, RES, CH_PWM_L2);
+  ledcAttach(PIN_PWM_RF1, FREQ, RES, CH_PWM_R1);
+  ledcAttach(PIN_PWM_RF2, FREQ, RES, CH_PWM_R2);
+#endif
+
+#if (HAS_SPEED_SENSORS_BACK)
+  ledcAttach(PIN_PWM_LB1, FREQ, RES, CH_PWM_L1);  
+  ledcAttach(PIN_PWM_LB2, FREQ, RES, CH_PWM_L2);
+  ledcAttach(PIN_PWM_RB1, FREQ, RES, CH_PWM_R1);
+  ledcAttach(PIN_PWM_RB2, FREQ, RES, CH_PWM_R2);
+#endif
 
 #if (HAS_LEDS_BACK)
-  ledcSetup(CH_LED_LB, FREQ, RES);
-  ledcSetup(CH_LED_RB, FREQ, RES);
-  ledcAttachPin(PIN_LED_RB, CH_LED_RB);
-  ledcAttachPin(PIN_LED_LB, CH_LED_LB);
+  ledcAttach(PIN_LED_RB, FREQ, RES, CH_LED_RB);
+  ledcAttach(PIN_LED_LB, FREQ, RES, CH_LED_LB);
 #endif
 
 #if (HAS_LEDS_FRONT)
-  ledcSetup(CH_LED_LF, FREQ, RES);
-  ledcSetup(CH_LED_RF, FREQ, RES);
-  ledcAttachPin(PIN_LED_LF, CH_LED_LF);
-  ledcAttachPin(PIN_LED_RF, CH_LED_RF);
+  ledcAttach(PIN_LED_LF, FREQ, RES, CH_LED_LF);
+  ledcAttach(PIN_LED_RF, FREQ, RES, CH_LED_RF);
 #endif
 
 #endif
@@ -869,12 +975,8 @@ void setup() {
 #if (OPENBOT == MTV)
   // PWMs
   // PWM signal configuration using the ESP32 API
-  ledcSetup(LHS_PWM_OUT, FREQ, RES);
-  ledcSetup(RHS_PWM_OUT, FREQ, RES);
-
-  // Attach the channel to the GPIO to be controlled
-  ledcAttachPin(PIN_PWM_L, LHS_PWM_OUT);
-  ledcAttachPin(PIN_PWM_R, RHS_PWM_OUT);
+  ledcAttach(PIN_PWM_L, FREQ, RES, CH_PWM_L);
+  ledcAttach(PIN_PWM_R, FREQ, RES, CH_PWM_R);
 
   pinMode(PIN_DIR_L, OUTPUT);
   pinMode(PIN_DIR_R, OUTPUT);
@@ -882,19 +984,34 @@ void setup() {
   pinMode(PIN_DIR_R, LOW);
 #endif
 
+#if (OPENBOT == ESP32_NXT)
+  // PWMs
+  // PWM signal configuration using the ESP32 API
+  ledcAttach(PIN_PWM_L1, FREQ, RES, CH_PWM_L1);
+  ledcAttach(PIN_PWM_R1, FREQ, RES, CH_PWM_R1);
+  ledcAttach(PIN_PWM_L2, FREQ, RES, CH_PWM_L2);
+  ledcAttach(PIN_PWM_R2, FREQ, RES, CH_PWM_R2);
+
+#if (HAS_LEDS_BACK)
+  ledcAttach(PIN_LED_RB, FREQ, RES, CH_LED_RB);
+  ledcAttach(PIN_LED_LB, FREQ, RES, CH_LED_LB);
+  ledcAttach(PIN_LED_RI, FREQ, RES, CH_LED_RB);
+  ledcAttach(PIN_LED_LI, FREQ, RES, CH_LED_LB);  
+#endif
+
+#if (HAS_LEDS_FRONT)
+  ledcAttach(PIN_LED_LF, FREQ, RES, CH_LED_LF);
+  ledcAttach(PIN_LED_RF, FREQ, RES, CH_LED_RF);
+#endif
+#endif
+
 #if (OPENBOT == DIY_ESP32)
   // PWMs
   // Configure PWM functionalitites
-  ledcSetup(CH_PWM_L1, FREQ, RES);
-  ledcSetup(CH_PWM_L2, FREQ, RES);
-  ledcSetup(CH_PWM_R1, FREQ, RES);
-  ledcSetup(CH_PWM_R2, FREQ, RES);
-
-  // Attach the channel to the GPIO to be controlled
-  ledcAttachPin(PIN_PWM_L1, CH_PWM_L1);
-  ledcAttachPin(PIN_PWM_L2, CH_PWM_L2);
-  ledcAttachPin(PIN_PWM_R1, CH_PWM_R1);
-  ledcAttachPin(PIN_PWM_R2, CH_PWM_R2);
+  ledcAttach(PIN_PWM_L1, FREQ, RES, CH_PWM_L1);
+  ledcAttach(PIN_PWM_L2, FREQ, RES, CH_PWM_L2);
+  ledcAttach(PIN_PWM_R1, FREQ, RES, CH_PWM_R1);
+  ledcAttach(PIN_PWM_R2, FREQ, RES, CH_PWM_R2);
 #endif
 
   Serial.begin(115200, SERIAL_8N1);
@@ -1014,7 +1131,8 @@ void loop() {
       bumper_array[i] = analogRead(PIN_BUMPER);
     }
     bumper_reading = get_median(bumper_array, bumper_array_sz);
-    if (bumper_reading > BUMPER_NOISE)
+    // if (bumper_reading > BUMPER_NOISE)
+    if (bumper_reading < 4000)
       emergency_stop();
   }
 
@@ -1279,56 +1397,57 @@ void emergency_stop() {
 #if DEBUG
     Serial.print("All Front: ");
 #endif
-  } else if (almost_equal(bumper_reading, BUMPER_BF, BUMPER_EPS)) {
-    collision_lf = 1;
-    collision_rf = 1;
-    strncpy(bumper_id, "bf", sizeof(bumper_id));
-#if DEBUG
-    Serial.print("Both Front: ");
-#endif
-  } else if (almost_equal(bumper_reading, BUMPER_CF, BUMPER_EPS)) {
-    collision_cf = 1;
-    strncpy(bumper_id, "cf", sizeof(bumper_id));
-#if DEBUG
-    Serial.print("Camera Front: ");
-#endif
-  } else if (almost_equal(bumper_reading, BUMPER_LF, BUMPER_EPS)) {
-    collision_lf = 1;
-    strncpy(bumper_id, "lf", sizeof(bumper_id));
-#if DEBUG
-    Serial.print("Left Front: ");
-#endif
-  } else if (almost_equal(bumper_reading, BUMPER_RF, BUMPER_EPS)) {
-    collision_rf = 1;
-    strncpy(bumper_id, "rf", sizeof(bumper_id));
-#if DEBUG
-    Serial.print("Right Front: ");
-#endif
-  } else if (almost_equal(bumper_reading, BUMPER_BB, BUMPER_EPS)) {
-    collision_lb = 1;
-    collision_rb = 1;
-    strncpy(bumper_id, "bb", sizeof(bumper_id));
-#if DEBUG
-    Serial.print("Both Back: ");
-#endif
-  } else if (almost_equal(bumper_reading, BUMPER_LB, BUMPER_EPS)) {
-    collision_lb = 1;
-    strncpy(bumper_id, "lb", sizeof(bumper_id));
-#if DEBUG
-    Serial.print("Left Back: ");
-#endif
-  } else if (almost_equal(bumper_reading, BUMPER_RB, BUMPER_EPS)) {
-    collision_rb = 1;
-    strncpy(bumper_id, "rb", sizeof(bumper_id));
-#if DEBUG
-    Serial.print("Right Back: ");
-#endif
-  } else {
-    strncpy(bumper_id, "??", sizeof(bumper_id));
-#if DEBUG
-    Serial.print("Unknown: ");
-#endif
   }
+  //  else if (almost_equal(bumper_reading, BUMPER_BF, BUMPER_EPS)) {
+//     collision_lf = 1;
+//     collision_rf = 1;
+//     strncpy(bumper_id, "bf", sizeof(bumper_id));
+// #if DEBUG
+//     Serial.print("Both Front: ");
+// #endif
+//   } else if (almost_equal(bumper_reading, BUMPER_CF, BUMPER_EPS)) {
+//     collision_cf = 1;
+//     strncpy(bumper_id, "cf", sizeof(bumper_id));
+// #if DEBUG
+//     Serial.print("Camera Front: ");
+// #endif
+//   } else if (almost_equal(bumper_reading, BUMPER_LF, BUMPER_EPS)) {
+//     collision_lf = 1;
+//     strncpy(bumper_id, "lf", sizeof(bumper_id));
+// #if DEBUG
+//     Serial.print("Left Front: ");
+// #endif
+//   } else if (almost_equal(bumper_reading, BUMPER_RF, BUMPER_EPS)) {
+//     collision_rf = 1;
+//     strncpy(bumper_id, "rf", sizeof(bumper_id));
+// #if DEBUG
+//     Serial.print("Right Front: ");
+// #endif
+//   } else if (almost_equal(bumper_reading, BUMPER_BB, BUMPER_EPS)) {
+//     collision_lb = 1;
+//     collision_rb = 1;
+//     strncpy(bumper_id, "bb", sizeof(bumper_id));
+// #if DEBUG
+//     Serial.print("Both Back: ");
+// #endif
+//   } else if (almost_equal(bumper_reading, BUMPER_LB, BUMPER_EPS)) {
+//     collision_lb = 1;
+//     strncpy(bumper_id, "lb", sizeof(bumper_id));
+// #if DEBUG
+//     Serial.print("Left Back: ");
+// #endif
+//   } else if (almost_equal(bumper_reading, BUMPER_RB, BUMPER_EPS)) {
+//     collision_rb = 1;
+//     strncpy(bumper_id, "rb", sizeof(bumper_id));
+// #if DEBUG
+//     Serial.print("Right Back: ");
+// #endif
+//   } else {
+//     strncpy(bumper_id, "??", sizeof(bumper_id));
+// #if DEBUG
+//     Serial.print("Unknown: ");
+// #endif
+//   }
 #if DEBUG
   Serial.println(bumper_reading);
 #endif
@@ -1375,12 +1494,17 @@ void process_light_msg() {
   light_front = atoi(tmp);      // convert to int
   tmp = strtok(NULL, ",:");     // continues where the previous call left off
   light_back = atoi(tmp);       // convert to int
+
+//  if (light_front==1) light_front=255; else light_front =0;
+//  if (light_back==1)  light_back=255; else light_back =0;
+
 #if DEBUG
   Serial.print("Light: ");
   Serial.print(light_front);
   Serial.print(",");
   Serial.println(light_back);
 #endif
+
   update_light();
 }
 #endif
@@ -1402,6 +1526,10 @@ void process_indicator_msg() {
   indicator_left = atoi(tmp);   // convert to int
   tmp = strtok(NULL, ",:");     // continues where the previous call left off
   indicator_right = atoi(tmp);  // convert to int
+
+//  if (indicator_left==1) indicator_left=255; else indicator_left =0;
+//  if (indicator_right==1)  indicator_right=255; else indicator_right =0;
+
 #if DEBUG
   Serial.print("Indicator: ");
   Serial.print(indicator_left);
@@ -1619,7 +1747,7 @@ void display_vehicle_data() {
 #endif
 #if (HAS_SPEED_SENSORS_FRONT or HAS_SPEED_SENSORS_BACK or HAS_SPEED_SENSORS_MIDDLE)
   String left_rpm_str = String("Left RPM:  ") + String(rpm_left, 0);
-  String right_rpm_str = String("Right RPM:  ") + String(rpm_right, 0);
+  String right_rpm_str = String("Right RPM:  ") + String(rpm_left, 0);
 #else
   String left_rpm_str = String("Left RPM:  ") + String("N/A");
   String right_rpm_str = String("Right RPM:  ") + String("N/A");
@@ -1631,6 +1759,12 @@ void display_vehicle_data() {
 #endif
 #if DEBUG
   Serial.println("------------------");
+  // if (bumper_event) 
+    // Serial.print("BUMPER = ");
+    // Serial.print(bumper_reading);
+    // Serial.print(" BUMPED = ");
+    // Serial.println(bumper_event);
+  // else
   Serial.println(voltage_str);
   Serial.println(left_rpm_str);
   Serial.println(right_rpm_str);
@@ -1684,33 +1818,31 @@ void send_wheel_reading(long duration) {
 
 void update_indicator() {
   if (indicator_left > 0) {
-#if ((OPENBOT == RTR_TT2 || OPENBOT == RTR_520) && PIN_LED_LI == PIN_LED_LB)
-    ledcDetachPin(PIN_LED_LB);
-#endif
+#if ((OPENBOT == RTR_TT2 || OPENBOT == RTR_520 || OPENBOT == ESP32_NXT) && PIN_LED_LI == PIN_LED_LB)
+  ledcWriteChannel(CH_LED_LB,0);
+#else
     digitalWrite(PIN_LED_LI, !digitalRead(PIN_LED_LI));
+#endif    
   } else {
 #if (HAS_LEDS_BACK)
     digitalWrite(PIN_LED_LI, PIN_LED_LI == PIN_LED_LB ? light_back : LOW);
-#else
-    digitalWrite(PIN_LED_LI, LOW);
 #endif
-#if ((OPENBOT == RTR_TT2 || OPENBOT == RTR_520) && PIN_LED_LI == PIN_LED_LB)
-    ledcAttachPin(PIN_LED_LB, CH_LED_LB);
+#if ((OPENBOT == RTR_TT2 || OPENBOT == RTR_520 || OPENBOT == ESP32_NXT) && PIN_LED_LI == PIN_LED_LB)
+  ledcWriteChannel(CH_LED_LB, 255);
 #endif
   }
   if (indicator_right > 0) {
-#if ((OPENBOT == RTR_TT2 || OPENBOT == RTR_520) && PIN_LED_RI == PIN_LED_RB)
-    ledcDetachPin(PIN_LED_RB);
-#endif
+#if ((OPENBOT == RTR_TT2 || OPENBOT == RTR_520 || OPENBOT == ESP32_NXT) && PIN_LED_RI == PIN_LED_RB)
+  ledcWriteChannel(CH_LED_RB,0);
+#else
     digitalWrite(PIN_LED_RI, !digitalRead(PIN_LED_RI));
+#endif
   } else {
 #if (HAS_LEDS_BACK)
-    digitalWrite(PIN_LED_RI, PIN_LED_RI == PIN_LED_RB ? light_back : LOW);
-#else
-    digitalWrite(PIN_LED_RI, LOW);
+  digitalWrite(PIN_LED_RI, PIN_LED_RI == PIN_LED_RB ? light_back : LOW);
 #endif
-#if ((OPENBOT == RTR_TT2 || OPENBOT == RTR_520) && PIN_LED_RI == PIN_LED_RB)
-    ledcAttachPin(PIN_LED_RB, CH_LED_RB);
+#if ((OPENBOT == RTR_TT2 || OPENBOT == RTR_520 || OPENBOT == ESP32_NXT) && PIN_LED_RI == PIN_LED_RB)
+  ledcWriteChannel(CH_LED_RB, 255);
 #endif
   }
 }
@@ -1720,9 +1852,11 @@ void update_indicator() {
 #if (HAS_LEDS_FRONT || HAS_LEDS_BACK)
 void update_light() {
 #if (HAS_LEDS_FRONT)
-#if (OPENBOT == RTR_TT2 || OPENBOT == RTR_520)
-  analogWrite(CH_LED_LF, light_front);
-  analogWrite(CH_LED_RF, light_front);
+#if (OPENBOT == RTR_TT2 || OPENBOT == RTR_520 || OPENBOT == ESP32_NXT)
+  // ledcWriteChannel(CH_LED_LF, light_front);
+  // ledcWriteChannel(CH_LED_RF, light_front);
+  analogWrite(PIN_LED_LF, light_front);
+  analogWrite(PIN_LED_RF, light_front);  
 #else
   analogWrite(PIN_LED_LF, light_front);
   analogWrite(PIN_LED_RF, light_front);
@@ -1730,9 +1864,9 @@ void update_light() {
 #endif
 
 #if (HAS_LEDS_BACK)
-#if (OPENBOT == RTR_TT2 || OPENBOT == RTR_520)
-  analogWrite(CH_LED_LB, light_back);
-  analogWrite(CH_LED_RB, light_back);
+#if (OPENBOT == RTR_TT2 || OPENBOT == RTR_520 || OPENBOT == ESP32_NXT)
+  ledcWriteChannel(CH_LED_LB, light_back);
+  ledcWriteChannel(CH_LED_RB, light_back);
 #else
   analogWrite(PIN_LED_LB, light_back);
   analogWrite(PIN_LED_RB, light_back);
@@ -1886,3 +2020,5 @@ void update_speed_rm() {
   }
 }
 #endif
+
+//END scetch
