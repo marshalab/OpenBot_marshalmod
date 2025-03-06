@@ -1,4 +1,3 @@
-
 # Firmware
 
 <p align="center">
@@ -11,18 +10,6 @@
 </p>
 
 We use a microcontroller unit (MCU) to act as a bridge between the robot body and the smartphone.  We provide our [firmware](openbot/openbot.ino) for the Arduino Nano with an ATmega328P microcontroller as well as for the ESP32 development kit.
-
-## Известные глюки
-- подключение Android управления к плате не всегда соединяется сразу
-- запрос состояния перестал работать, но управление есть
-- не работает бампер
-- ультразвуковой дальномер - не передает на смартфон
-- не работает индикация
-
-## Проверено - работает
-- энкодеры моторы работают
-- OLED дисплей
-- ультразвуковой дальномер на дисплее показывает верно
 
 ## Features
 
